@@ -63,8 +63,8 @@ def compute_metrics(request: MetricsRequest):
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Or specific domains for security
-    allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_credentials=True,
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
