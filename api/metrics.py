@@ -11,14 +11,7 @@ import numpy as np
 app = FastAPI()
 
 
-# Enable CORS for POST from any origin
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["POST", "OPTIONS"],
-    allow_headers=["*"],
-)
+
 
 # Load telemetry data once
 telemetry_path = Path(os.path.dirname(__file__)) / "q-vercel-latency.json"
@@ -60,7 +53,14 @@ def compute_metrics(request: MetricsRequest):
 @app.get("/")
 def root():
     return {"message": "FastAPI is running!"}
-
+# Enable CORS for POST from any origin
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["POST", "OPTIONS"],
+    allow_headers=["*"],
+)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
