@@ -55,7 +55,7 @@ def compute_metrics(request: MetricsRequest):
         }
         
 
-    return result
+    return {"working"}
 @app.get("/")
 def root():
     return {"message": "FastAPI is running!"}
