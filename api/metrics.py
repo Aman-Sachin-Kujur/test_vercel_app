@@ -15,7 +15,8 @@ app.add_middleware(
     allow_origins=["*"],  # Or specific domains for security
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
+    expose_headers=["*"]
 )
 
 # Load telemetry data (adjust path if needed for Vercel)
