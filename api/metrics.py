@@ -56,6 +56,9 @@ def compute_metrics(request: MetricsRequest):
         
 
     return result
+@app.get("/")
+def root():
+    return {"message": "FastAPI is running!"}
 
 if __name__ == "__main__":
     import uvicorn
