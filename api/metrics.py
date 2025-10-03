@@ -39,7 +39,8 @@ def compute_metrics(request: MetricsRequest):
             continue
         
         latencies = [r["latency_ms"] for r in region_data]
-        uptimes = [r["uptime"] for r in region_data]
+        uptimes = [r.get('uptime', 0) for r in region_data]  # Use .get() to avoid KeyError, default to 0 or None
+
         
         avg_latency = mean(latencies)
         p95_latency = np.percentile(latencies, 95)
