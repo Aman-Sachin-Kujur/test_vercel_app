@@ -32,6 +32,7 @@ class MetricsRequest(BaseModel):
 @app.post("/metrics")
 def compute_metrics(request: MetricsRequest):
     result = {}
+    
     for region in request.regions:
         region_data = [r for r in telemetry if r["region"] == region]
         if not region_data:
@@ -52,5 +53,11 @@ def compute_metrics(request: MetricsRequest):
             "breaches": breaches
             
         }
+        
 
     return result
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
