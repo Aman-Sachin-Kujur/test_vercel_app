@@ -1,43 +1,50 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List
-import os
-import json
 from pathlib import Path
-from statistics import mean
+import json
 import numpy as np
+from statistics import mean
+import os
 
 app = FastAPI()
 
-
-
-
-# Load telemetry data once
+# Load telemetry data (adjust path if needed for Vercel)
 telemetry_path = Path(os.path.dirname(__file__)) / "q-vercel-latency.json"
-with telemetry_path.open() as f:
-    telemetry = json.load(f)
+try:
+    with telemetry_path.open() as f:
+        telemetry = json.load(f)
+except FileNotFoundError:
+    telemetry = []  # Fallback to empty list to avoid crashes
 
+# Pydantic model for request validation
 class MetricsRequest(BaseModel):
-    regions: List[str]
-    threshold_ms: int = 180
+    regions: list[str]
+    threshold_ms: int
+
+# Routes defined FIRST
+@app.get("/")
+def root():
+    return {"message": "FastAPI is running!"}
+
+@app.options("/metrics")  # Explicitly handle OPTIONS for preflight
+def metrics_options():
+    return {"status": "OK"}
 
 @app.post("/metrics")
 def compute_metrics(request: MetricsRequest):
     result = {}
-    
     for region in request.regions:
-        region_data = [r for r in telemetry if r["region"] == region]
+        region_data = [r for r in telemetry if r.get("region") == region]
         if not region_data:
             continue
         
-        latencies = [r["latency_ms"] for r in region_data]
-        uptimes = [r.get('uptime', 0) for r in region_data]  # Use .get() to avoid KeyError, default to 0 or None
-
+        latencies = [r.get("latency_ms", 0) for r in region_data]
+        uptimes = [r.get("uptime", 0) for r in region_data]  # Safely handle missing 'uptime'
         
-        avg_latency = mean(latencies)
-        p95_latency = np.percentile(latencies, 95)
-        avg_uptime = mean(uptimes)
+        avg_latency = mean(latencies) if latencies else 0
+        p95_latency = np.percentile(latencies, 95) if latencies else 0
+        avg_uptime = mean(uptimes) if uptimes else 0
         breaches = sum(1 for l in latencies if l > request.threshold_ms)
         
         result[region] = {
@@ -45,23 +52,20 @@ def compute_metrics(request: MetricsRequest):
             "p95_latency": p95_latency,
             "avg_uptime": avg_uptime,
             "breaches": breaches
-            
         }
-        
-
+    
+    if not result:
+        raise HTTPException(status_code=404, detail="No data for requested regions")
+    
     return result
-@app.get("/")
-def root():
-    return {"message": "FastAPI is running!"}
-# Enable CORS for POST from any origin
+
+# Add CORS middleware LAST
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Or specific domains for security
     allow_credentials=False,
-    allow_methods=["POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
 
