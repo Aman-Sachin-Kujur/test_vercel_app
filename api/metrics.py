@@ -9,6 +9,15 @@ import os
 
 app = FastAPI()
 
+# Add CORS middleware LAST
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or specific domains for security
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Load telemetry data (adjust path if needed for Vercel)
 telemetry_path = Path(os.path.dirname(__file__)) / "q-vercel-latency.json"
 try:
@@ -58,14 +67,5 @@ def compute_metrics(request: MetricsRequest):
         raise HTTPException(status_code=404, detail="No data for requested regions")
     
     return result
-
-# Add CORS middleware LAST
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Or specific domains for security
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
