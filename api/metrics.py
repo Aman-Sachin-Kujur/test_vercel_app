@@ -9,7 +9,7 @@ import os
 
 app = FastAPI()
 
-# Add CORS middleware LAST
+# added to top
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Or specific domains for security
